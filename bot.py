@@ -21,6 +21,8 @@ sp_oauth = SpotifyOAuth(client_id=SPOTIFY_CLIENT_ID,
 sp = None
 
 intents = discord.Intents.default()
+intents.message_content = True  # Ajoutez cette ligne pour activer l'intent des messages
+
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 @app.route('/')

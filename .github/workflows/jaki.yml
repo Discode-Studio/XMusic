@@ -26,6 +26,7 @@ jobs:
         pip install discord.py spotipy Flask gunicorn
         pip install pynacl
         pip install pytube
+        pip import requirements.txt
 
     - name: Run Discord Bot
       env:

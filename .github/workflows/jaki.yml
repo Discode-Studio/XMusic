@@ -25,7 +25,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install discord.py spotipy Flask gunicorn
         pip install pynacl
-        pip install discord.py
         pip install pytube
         from discord import FFmpegPCMAudio
         from ytytomp3 import give_link,download_vid,find_music_name,remove_all_files

@@ -25,12 +25,23 @@ jobs:
         python -m pip install --upgrade pip
         pip install discord.py spotipy Flask gunicorn
 
+    - name: Print environment variables
+      run: |
+        echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}"
+        echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}"
+
     - name: Run Flask with Gunicorn
       env:
         SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
         SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
       run: |
         nohup gunicorn -w 4 -b 0.0.0.0:8888 bot:app &
+        sleep 10  # Wait for Gunicorn to start
+
+    - name: Check running processes
+      run: |
+        ps aux | grep gunicorn
+        ps aux | grep python
 
     - name: Run Discord Bot
       env:
@@ -39,3 +50,5 @@ jobs:
         DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
       run: |
         nohup python bot.py &
+        sleep 10  # Wait for bot to start
+        ps aux | grep python  # Check if the bot process is running

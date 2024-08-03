@@ -25,30 +25,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install discord.py spotipy Flask gunicorn
         pip install pynacl
-
-    - name: Print environment variables
-      run: |
-        echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}"
-        echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}"
-
-    - name: Run Flask with Gunicorn
-      env:
-        SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
-        SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
-      run: |
-        nohup gunicorn -w 4 -b 0.0.0.0:8888 bot:app --access-logfile gunicorn_access.log --error-logfile gunicorn_error.log > gunicorn.log 2>&1 &
-        
-    - name: Check running processes
-      run: |
-        ps aux | grep gunicorn
-        ps aux | grep python
+        pip install discord.py
+        pip install pytube
+        from discord import FFmpegPCMAudio
+        from ytytomp3 import give_link,download_vid,find_music_name,remove_all_files
+        from discord import FFmpegAudio
+        from discord import FFmpegOpusAudio
 
     - name: Run Discord Bot
       env:
-        SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
-        SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
         DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
       run: |
-        nohup python bot.py &
+        python bot.py & search.py
         sleep 10  # Wait for bot to start
         ps aux | grep python  # Check if the bot process is running

@@ -1,10 +1,14 @@
+import logging
 import os
+import traceback
 from flask import Flask, request, redirect
-import threading
 import discord
 from discord.ext import commands
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth
+
+# Configuration de la journalisation
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 
@@ -14,6 +18,7 @@ SPOTIFY_REDIRECT_URI = 'http://localhost:8888/callback'
 SCOPE = 'user-read-playback-state user-modify-playback-state'
 
 if not SPOTIFY_CLIENT_ID or not SPOTIFY_CLIENT_SECRET:
+    logging.error("Spotify client ID and secret must be set as environment variables.")
     raise ValueError("Spotify client ID and secret must be set as environment variables.")
 
 sp_oauth = SpotifyOAuth(client_id=SPOTIFY_CLIENT_ID,
@@ -43,7 +48,7 @@ def callback():
 
 @bot.event
 async def on_ready():
-    print(f'Logged in as {bot.user.name}')
+    logging.info(f'Logged in as {bot.user.name}')
 
 @bot.command()
 async def play(ctx, track_uri):
@@ -70,5 +75,8 @@ async def resume(ctx):
         await ctx.send('Please log in to Spotify first.')
 
 if __name__ == '__main__':
-    # On démarre uniquement le bot Discord ici
-    bot.run(os.getenv('DISCORD_TOKEN'))
+    try:
+        bot.run(os.getenv('DISCORD_TOKEN'))
+    except Exception as e:
+        logging.error("An error occurred:")
+        logging.error(traceback.format_exc())

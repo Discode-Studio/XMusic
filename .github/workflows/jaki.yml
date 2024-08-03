@@ -26,10 +26,6 @@ jobs:
         pip install discord.py spotipy Flask gunicorn
         pip install pynacl
         pip install pytube
-        from discord import FFmpegPCMAudio
-        from ytytomp3 import give_link,download_vid,find_music_name,remove_all_files
-        from discord import FFmpegAudio
-        from discord import FFmpegOpusAudio
 
     - name: Run Discord Bot
       env:

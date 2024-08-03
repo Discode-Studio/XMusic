@@ -24,6 +24,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install discord.py spotipy Flask gunicorn
+        pip install pynacl
 
     - name: Print environment variables
       run: |
@@ -36,6 +37,7 @@ jobs:
         SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
       run: |
         nohup gunicorn -w 4 -b 0.0.0.0:8888 bot:app --access-logfile gunicorn_access.log --error-logfile gunicorn_error.log &
+        sleep 10  # Wait for Gunicorn to start
 
     - name: Check running processes
       run: |

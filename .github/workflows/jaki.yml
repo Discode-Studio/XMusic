@@ -34,6 +34,8 @@ jobs:
 
     - name: Run Discord Bot
       env:
+        SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+        SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
         DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
       run: |
         nohup python bot.py &

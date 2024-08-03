@@ -1,82 +1,91 @@
-import logging
-import os
-import traceback
-from flask import Flask, request, redirect
+from  discord.ext import commands,tasks
+from discord import FFmpegPCMAudio
+from ytytomp3 import give_link,download_vid,find_music_name,remove_all_files
+from discord import FFmpegAudio
+from discord import FFmpegOpusAudio
+import asyncio
 import discord
-from discord.ext import commands
-from spotipy import Spotify
-from spotipy.oauth2 import SpotifyOAuth
 
-# Configuration de la journalisation
-logging.basicConfig(level=logging.INFO)
+#This is the main file
 
-app = Flask(__name__)
+intents = discord.Intents.all() #allowing all intents
+intents.members = True
 
-SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
-SPOTIFY_CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
-SPOTIFY_REDIRECT_URI = 'http://localhost:8888/callback'
-SCOPE = 'user-read-playback-state user-modify-playback-state'
-
-if not SPOTIFY_CLIENT_ID or not SPOTIFY_CLIENT_SECRET:
-    logging.error("Spotify client ID and secret must be set as environment variables.")
-    raise ValueError("Spotify client ID and secret must be set as environment variables.")
-
-sp_oauth = SpotifyOAuth(client_id=SPOTIFY_CLIENT_ID,
-                        client_secret=SPOTIFY_CLIENT_SECRET,
-                        redirect_uri=SPOTIFY_REDIRECT_URI,
-                        scope=SCOPE)
-
-sp = None
-
-intents = discord.Intents.default()
-intents.message_content = True  # Ajoutez cette ligne pour activer l'intent des messages
-
-bot = commands.Bot(command_prefix='!', intents=intents)
-
-@app.route('/')
-def login():
-    auth_url = sp_oauth.get_authorize_url()
-    return redirect(auth_url)
-
-@app.route('/callback')
-def callback():
-    global sp
-    code = request.args.get('code')
-    token_info = sp_oauth.get_access_token(code)
-    sp = Spotify(auth=token_info['access_token'])
-    return "You can now close this window."
+bot = commands.Bot(command_prefix = "!",help_command=None,intents = intents) #Creating our bot
 
 @bot.event
-async def on_ready():
-    logging.info(f'Logged in as {bot.user.name}')
+async def on_ready():  
+    try: # If bot can connect to the discord
 
-@bot.command()
-async def play(ctx, track_uri):
-    if sp:
-        sp.start_playback(uris=[track_uri])
-        await ctx.send(f'Playing track: {track_uri}')
-    else:
-        await ctx.send('Please log in to Spotify first.')
+        print('Discord bot succesfully connected')
+    except:
+        print("[!] Couldn't connect, an Error occured")
+
 
 @bot.command()
 async def pause(ctx):
-    if sp:
-        sp.pause_playback()
-        await ctx.send('Playback paused')
+    if ctx.voice_client and ctx.voice_client.is_playing(): # if the music is already playing 
+        ctx.voice_client.pause() #pausing the music 
+        await ctx.send("Playback paused.") #sending confirmation on  channel
     else:
-        await ctx.send('Please log in to Spotify first.')
+        await ctx.send('[-] An error occured: You have to be in voice channel to use this commmand') #if you are not in vc
 
 @bot.command()
 async def resume(ctx):
-    if sp:
-        sp.start_playback()
-        await ctx.send('Playback resumed')
+    if ctx.voice_client and ctx.voice_client.is_paused(): # If the music is already paused
+        ctx.voice_client.resume() #resuming the music
+        await ctx.send("Playback resumed.")#sending confirmation on  channel
     else:
-        await ctx.send('Please log in to Spotify first.')
+        await ctx.send('[-] An error occured: You have to be in voice channel to use this commmand') #if you are not in vc
 
-if __name__ == '__main__':
+@bot.command()
+async def leave(ctx): 
+    if ctx.voice_client: #if you are in vc 
+        await ctx.guild.voice_client.disconnect() #disconnecting from the vc
+        await ctx.send("Lefted the voice channel") #sending confirmation on channel
+        sleep(1)
+        remove_all_files("music") #deleting the all the files in the folder that  we downloaded to not waste space on your pc
+
+    else:
+        await ctx.send("[-] An Error occured: You have to be in a voice channel to run this command") #if you are not in vc
+
+@bot.command()
+async def join(context):
+    if context.author.voice:
+        channel = context.message.author.voice.channel
+        try:
+
+             await channel.connect() #connecting to channel
+        except:
+            await context.send("[-] An error occured: Couldn't connect to the channel") #if there is an error
+
+    else:
+        await context.send("[-] An Error occured: You have to be in a voice channel to run this command") #if you are not in vc
+
+
+
+@bot.command(name="play")
+async def play(ctx,*,title):
+    download_vid(title) # Downloading the mp4 of the desired vid
+    voice_channel = ctx.author.voice.channel
+
+   
+    if not ctx.voice_client: #if you are not in  vc 
+        voice_channel = await voice_channel.connect() #connecting to vc
+
     try:
-        bot.run(os.getenv('DISCORD_TOKEN'))
+        async with ctx.typing():
+            player = discord.FFmpegPCMAudio(executable="C:\\ffmpeg\\ffmpeg.exe", source=f"music/{find_music_name()}") #executable part is where we downloaded ffmpeg. We are writing our find_mmusic name func because , we want to bot to play our desired song fro the folder
+            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+        await ctx.send(f'Now playing: {find_music_name()}') #sening confirmmation
+
+        while ctx.voice_client.is_playing():
+            await asyncio.sleep(1)
+        delete_selected_file(find_music_name()) # deleting the file after it played
+
     except Exception as e:
-        logging.error("An error occurred:")
-        logging.error(traceback.format_exc())
+        await ctx.send(f'Error: {e}') #sending error
+
+
+
+bot.run('DISCORD_TOKEN')

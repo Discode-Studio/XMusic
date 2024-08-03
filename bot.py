@@ -66,9 +66,6 @@ async def resume(ctx):
     else:
         await ctx.send('Please log in to Spotify first.')
 
-def run_flask():
-    app.run(port=8888)
-
 if __name__ == '__main__':
-    threading.Thread(target=run_flask).start()
+    # On démarre uniquement le bot Discord ici
     bot.run(os.getenv('DISCORD_TOKEN'))

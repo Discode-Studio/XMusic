@@ -38,6 +38,12 @@ jobs:
       run: |
         nohup gunicorn -w 4 -b 0.0.0.0:8888 bot:app --access-logfile gunicorn_access.log --error-logfile gunicorn_error.log &
         sleep 10  # Wait for Gunicorn to start
+        # Vérifiez les logs de Gunicorn
+        cat gunicorn_access.log
+        cat gunicorn_error.log
+
+        # Vérifiez les logs de votre bot
+        tail -f nohup.out
 
     - name: Check running processes
       run: |

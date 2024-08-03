@@ -13,6 +13,9 @@ SPOTIFY_CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
 SPOTIFY_REDIRECT_URI = 'http://localhost:8888/callback'
 SCOPE = 'user-read-playback-state user-modify-playback-state'
 
+if not SPOTIFY_CLIENT_ID or not SPOTIFY_CLIENT_SECRET:
+    raise ValueError("Spotify client ID and secret must be set as environment variables.")
+
 sp_oauth = SpotifyOAuth(client_id=SPOTIFY_CLIENT_ID,
                         client_secret=SPOTIFY_CLIENT_SECRET,
                         redirect_uri=SPOTIFY_REDIRECT_URI,
